@@ -1,0 +1,28 @@
+---
+- name: Check if perl is installed
+  register: perl_installed
+  stat:
+    path: /usr/local/bin/perl
+    
+- name: Check perl version
+  register: perl_version
+  command: /usr/local/bin/perl -v
+  changed_when: false
+  when: perl_installed.stat.exists
+
+#- name: Check perl version (debug)
+#  debug: 
+#    msg: "{{ perl_installed.stat.exists }}"
+
+- name: Add symlink for perl
+  file:
+    src: /usr/local/bin/perl
+    dest: /usr/bin/perl
+    state: link
+  when: 
+    - perl_installed.stat.exists
+    - perl_version.stdout | regex_replace('(?s).*This is perl (?P<mainver>\\d+), version (?P<ver>\\d+), subversion.*', '\\g<ver>') >= "20"
+
+#- name: Check version
+#  debug:
+#    msg: "{{ perl_version.stdout | regex_replace('(?s).*This is perl (?P<mainver>\\d+), version (?P<ver>\\d+), subversion.*', '\\g<mainver>.\\g<ver>') }}"

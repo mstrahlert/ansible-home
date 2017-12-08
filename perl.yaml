@@ -1,0 +1,4 @@
+---
+- hosts: freebsd
+  roles:
+    - perl

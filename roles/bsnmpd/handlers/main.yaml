@@ -1,0 +1,5 @@
+- name: Stop net-snmp
+  service: name=snmpd state=stopped
+
+- name: Restart bsnmpd
+  service: name=bsnmpd state=restarted

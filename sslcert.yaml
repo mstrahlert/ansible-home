@@ -1,0 +1,4 @@
+---
+- hosts: esxi-v34
+  roles:
+    - sslcert

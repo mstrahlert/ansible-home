@@ -1,0 +1,38 @@
+---
+#- name: Disable net-snmpd (check)
+#  shell: sed -n '1,60s/^snmpd_enable/#snmpd_enable/p' /etc/rc.conf
+#  args:
+#    warn: false
+#  register: sed_output
+#  changed_when: sed_output.stdout != ""
+#
+#- name: Disable net-snmpd
+#  shell: sed -i '1,60s/^snmpd_enable/#snmpd_enable/' /etc/rc.conf
+#  args:
+#    warn: false
+#  when: sed_output.stdout != ""
+
+- name: Disable net-snmpd
+  lineinfile:
+    path: /etc/rc.conf
+    state: absent
+    line: 'snmpd_enable="YES"'
+  notify: Stop net-snmp
+
+- name: Edit /etc/snmpd.conf
+  lineinfile:
+    path: /etc/snmpd.config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^location :=', line: 'location := "home"' }
+    - { regexp: '^contact :=', line: 'contact := "magnus"' }
+    - { regexp: '^read :=', line: 'read := "lan"' }
+  notify: Restart bsnmpd
+
+- name: Enable bsnmpd
+  lineinfile:
+    path: /etc/rc.conf
+    state: present
+    line: 'bsnmpd_enable="YES"' 
+  notify: Restart bsnmpd

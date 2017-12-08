@@ -1,0 +1,52 @@
+---
+- name: Install docker
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - docker
+    - epel-release
+    - docker-composer
+    - git
+
+- name: Enable and start docker
+  service:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Create data directory
+  file:
+    path: /data
+    owner: root
+    group: root
+    state: directory
+
+- name: Open ports in firewall
+  firewalld:
+    immediate: yes
+    permanent: yes
+    port: "{{ item.port }}"
+    service: "{{ item.service }}"
+    state: enabled
+  with_items:
+    - { port: 8086/tcp, service: http }
+
+- name: Copy docker-compose.yml
+  copy:
+    src: docker-compose.yml
+    dest: /root/docker-compose.yml
+
+- name: Pull the docker images
+  command: docker-compose pull
+
+- name: Generate Telegraf default config
+  command: docker run --rm telegraf telegraf config > /data/telegraf/telegraf.conf
+  creates: /data/telegraf/telegraf.conf
+  warn: no
+
+- name: Replace localhost with ip-address of docker nic
+  lineinfile:
+    path: /data/telegraf/telegraf.conf
+    regexp: '(\s+)//localhost:8086(\s+.*)?$'
+    replace: '\1//172.17.0.1:8086\2' 

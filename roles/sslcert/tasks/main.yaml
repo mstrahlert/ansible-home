@@ -1,0 +1,32 @@
+---
+- name: Check if certificate will expire
+#  command: openssl x509 -in /usr/local/etc/letsencrypt/live/strahlert.net/cert.pem -checkend 86400
+  openssl_certificate:
+    path: /usr/local/etc/letsencrypt/live/strahlert.net/cert.pem
+    provider: assertonly
+# 24 hours + 5 minutes to account for execution times
+    valid_in: 86700
+  register: cert_valid
+  ignore_errors: yes
+
+- debug:
+    var: cert_valid
+
+- name: Stop Apache
+  service:
+    name: apache22
+    state: stopped
+  when: cert_valid.failed == true
+
+- name: Renew certificate
+#  openssl_certificate:
+#    path: /usr/local/etc/letsencrypt/live/strahlert.net/cert.pem
+#    provider: acme
+  command: certbot -n --standalone certonly -d strahlert.net -d www.strahlert.net -d wp.strahlert.net 
+  when: cert_valid.failed == true
+
+- name: Start Apache
+  service:
+    name: apache22
+    state: started
+  when: cert_valid.failed == true

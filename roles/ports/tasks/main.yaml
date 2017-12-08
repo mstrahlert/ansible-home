@@ -1,0 +1,44 @@
+---
+- name: Set up /var/tmp/ports as ramdisk
+  mount:
+    src: tmpfs
+    path: /var/tmp/ports
+    fstype: tmpfs
+    opts: rw
+    state: mounted
+#    dump: 0
+#    passno: 0
+
+- name: Add NFS imports
+  mount:
+    src: "{{ item.src }}"
+    path: "{{ item.path }}"
+    fstype: nfs
+    opts: "{{ item.opts }},bg,async,retrycnt=5,soft,nolockd,rdirplus,readahead=2,rsize=32768,wsize=32768"
+    state: mounted
+  with_items:
+    - { src: '192.168.0.124:/usr/ports', path: '/usr/ports', opts: 'ro' }
+    - { src: '192.168.0.124:/usr/ports/distfiles', path: '/usr/ports/distfiles', opts: 'rw' }
+    - { src: '192.168.0.124:/usr/ports/packages', path: '/usr/ports/packages', opts: 'rw' }
+
+- name: Setup /etc/make.conf
+  lineinfile:
+    path: /etc/make.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    create: yes
+  with_items:
+    - { regexp: '^WRKDIRPREFIX=', line: 'WRKDIRPREFIX=/var/tmp/ports' }
+    - { regexp: '^WITHOUT_X11=', line: 'WITHOUT_X11=yes' }
+    - { regexp: 'NO_X11=', line: 'NO_X11=' }
+
+#  lineinfile:
+#    path: /etc/fstab
+#    regexp: '.*/var/tmp/ports'
+#    line: "tmpfs           /var/tmp/ports  tmpfs   rw      0       0"
+#  
+#- name: Make directory /var/tmp/ports
+#  file:
+#    path: /var/tmp/ports
+#    state: directory
+#  when: "'/var/tmp/ports' not in ansible_mounts"
