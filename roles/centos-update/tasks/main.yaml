@@ -1,0 +1,43 @@
+---
+- name: Update CentOS
+  block:
+    - name: Disable deltarpm in yum.conf
+      ini_file:
+        path: /etc/yum.conf
+        owner: root
+        group: root
+        mode: 0644
+        section: main
+        option: deltarpm
+        value: 0
+        no_extra_spaces: yes
+
+    - name: Disable making of debug kernel
+      lineinfile:
+        path: /etc/sysconfig/kernel
+        regexp: '^MAKEDEBUG'
+        line: 'MAKEDEBUG=no'
+
+    - name: Update kernel if applicable
+      yum:
+        name: "kernel*"
+        state: latest
+        exclude: kernel-debug*,kernel-devel*
+        update_cache: true
+      register: kernel_updated
+
+    - name: Initiate nightly restart if kernel has been updated
+      command: "{{ item }}"
+      when: kernel_updated.changed
+      with_items:
+        - "shutdown -r 01:{{ '%02d' | format(59|random(seed=ansible_hostname)) }}"
+        - "wall {{ ansible_hostname }} scheduled for reboot due to kernel update. Will restart at 01:{{ '%02d' | format(59|random(seed=ansible_hostname)) }} tonight!"
+
+    - name: Update all packages excluding kernel related packages
+      yum:
+        name: '*'
+        state: latest
+        exclude: kernel*
+
+  # block continues here
+  when: ansible_distribution == "CentOS"
