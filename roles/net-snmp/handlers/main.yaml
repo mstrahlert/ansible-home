@@ -1,0 +1,6 @@
+---
+- name: Restart and enable net-snmp
+  service:
+    name: snmpd
+    state: restarted
+    enabled: yes

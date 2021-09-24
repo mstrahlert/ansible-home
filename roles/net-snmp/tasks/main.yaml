@@ -1,0 +1,29 @@
+---
+- name: Install net-snmp
+  block:
+
+    - name: Install RPMs
+      yum:
+        name: "{{ rpms }}"
+        state: latest
+      vars:
+        rpms:
+          - net-snmp
+
+    - name: Firewall rules
+      firewalld:
+        service: snmp
+        state: enabled
+        immediate: yes
+        permanent: yes
+
+    - name: Configure net-snmp
+      blockinfile:
+        path: /etc/snmp/snmpd.conf
+        block: |
+          rocommunity {{ community_name }}
+          dontLogTCPWrappersConnects yes
+      notify: Restart and enable net-snmp
+
+  # Block continues here
+  when: ansible_distribution == "CentOS"
