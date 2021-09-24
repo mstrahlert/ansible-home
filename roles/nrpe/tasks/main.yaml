@@ -1,0 +1,37 @@
+---
+- name: Install NRPE
+  block:
+
+    - name: Install RPMs
+      yum:
+        name: "{{ rpms }}"
+        state: latest
+      vars:
+        rpms:
+          - nrpe
+          - nagios-plugins-load
+          - nagios-plugins-disk
+
+    - name: Firewall rules
+      firewalld:
+        service: nrpe
+        state: enabled
+        immediate: yes
+        permanent: yes
+
+    - name: Configure NRPE (allowed_hosts)
+      lineinfile:
+        path: /etc/nagios/nrpe.cfg
+        regexp: '^allowed_hosts='
+        line: 'allowed_hosts=127.0.0.1,::1,192.168.0.162,kvm-v19.home.strahlert.net'
+
+    - name: Copy nrpe conf.d files
+      copy:
+        src: "{{ item }}"
+        dest: /etc/nrpe.d
+      with_fileglob:
+        - "*.cfg"
+      notify: Restart and enable nrpe
+
+  # Block continues here
+  when: ansible_distribution == "CentOS"
