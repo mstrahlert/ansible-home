@@ -1,0 +1,41 @@
+---
+- hosts: freebsd
+  tasks:
+    - name: Sync time via NTP
+      block:
+        - name: Stop NTP service
+          service:
+            name: ntpd
+            state: stopped
+
+        - name: Set time from configured NTP servers
+          # -g to ignore time skews >1000s
+          command: ntpd -q -g
+
+        - name: Start NTP service
+          service:
+            name: ntpd
+            state: started
+
+      # Block continues here
+      when: ansible_distribution == "FreeBSD"
+
+- hosts: centos
+  tasks:
+    - name: Sync time via Chrony
+      block:
+        - name: Stop Chrony service
+          service:
+            name: chronyd
+            state: stopped
+
+        - name: Set time from configured NTP servers
+          command: chronyd -q
+
+        - name: Start Chrony service
+          service:
+            name: chronyd
+            state: started
+
+      # Block continues here
+      when: ansible_distribution == "CentOS"
