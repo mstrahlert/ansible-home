@@ -1,0 +1,5 @@
+---
+- name: Setup Ansible on node. Use with ansible-playbook -k
+  hosts: all
+  roles:
+    - setup-ansible

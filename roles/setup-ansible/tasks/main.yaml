@@ -1,0 +1,28 @@
+---
+- name: Create ansible user
+  user:
+    name: ansible
+    group: ansible
+    createhome: no
+    shell: "{{ shell[ansible_distribution | lower] }}"
+    system: yes
+  vars:
+    shell:
+      centos: /bin/bash
+      freebsd: /bin/sh
+
+- name: Install sudo
+  package:
+    name: sudo
+    state: present
+
+- name: Create sudo rule
+  lineinfile:
+    path: "{{ sudoers_d }}/ansible"
+    regexp: '^ansible'
+    line: 'ansible ALL=(ALL) NOPASSWD: ALL'
+    create: yes
+  vars:
+    sudoers_d:
+      centos: /etc/sudoers.d
+      freebsd: /usr/local/etc/sudoers.d
