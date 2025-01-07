@@ -1,0 +1,28 @@
+#!/bin/bash
+
+. ${0%/*}/utils.sh
+
+if [ $# != 1 ]; then
+  echo "Syntax: ${0##*/} <service>"
+  exit ${STATE_UNKNOWN}
+fi
+
+if [ -z "$(systemctl is-enabled $1 2>/dev/null)" ]; then
+  echo "WARNING: Service $1 non-existing"
+  exit ${STATE_WARNING}
+else
+  case $(systemctl is-active $1 2>/dev/null) in
+    "active") echo "OK: Service $1 running"
+       exit ${STATE_OK}
+       ;;
+    "inactive") echo "WARNING: Service $1 stopped"
+       exit ${STATE_WARNING}
+       ;;
+    "unknown") echo "WARNING: Service $1 unknown"
+       exit ${STATE_WARNING}
+       ;;
+    "failed") echo "CRITICAL: Service $1 failed"
+       exit ${STATE_CRITICAL}
+       ;;
+  esac
+fi

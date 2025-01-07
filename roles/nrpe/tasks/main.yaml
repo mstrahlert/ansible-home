@@ -24,6 +24,7 @@
         path: /etc/nagios/nrpe.cfg
         regexp: '^allowed_hosts='
         line: 'allowed_hosts=127.0.0.1,::1,192.168.0.162,kvm-v19.home.strahlert.net'
+      notify: Restart and enable nrpe
 
     - name: Copy nrpe conf.d files
       copy:
@@ -32,6 +33,14 @@
       with_fileglob:
         - "*.cfg"
       notify: Restart and enable nrpe
+
+    - name: Copy service checks
+      copy:
+        src: "{{ item }}"
+        dest: /usr/lib64/nagios/plugins/
+        mode: 0755
+      with_items:
+        - check_systemd_service
 
   # Block continues here
   when: ansible_distribution == "CentOS"
