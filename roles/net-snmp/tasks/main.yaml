@@ -26,4 +26,4 @@
       notify: Restart and enable net-snmp
 
   # Block continues here
-  when: ansible_distribution == "CentOS"
+  when: ansible_distribution == "CentOS" or ansible_distribution == "Rocky"

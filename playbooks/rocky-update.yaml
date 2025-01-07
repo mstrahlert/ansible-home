@@ -1,0 +1,4 @@
+---
+- hosts: rocky
+  roles:
+    - centos-update

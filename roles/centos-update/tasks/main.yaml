@@ -40,4 +40,4 @@
         exclude: kernel*
 
   # block continues here
-  when: ansible_distribution == "CentOS"
+  when: ansible_distribution == "CentOS" or ansible_distribution == "Rocky"
