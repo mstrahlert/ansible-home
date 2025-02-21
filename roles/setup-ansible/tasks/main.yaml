@@ -1,4 +1,9 @@
 ---
+- name: Create ansible group
+  group:
+    name: ansible
+    system: yes
+    
 - name: Create ansible user
   user:
     name: ansible
@@ -10,6 +15,7 @@
     shell:
       centos: /bin/bash
       freebsd: /bin/sh
+      rocky: /bin/bash
 
 - name: Install sudo
   package:
